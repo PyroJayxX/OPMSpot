@@ -2,6 +2,8 @@
 
 Guess the OPM (Original Pilipino Music) song from a short audio clip. Each round plays a growing snippet — 0.1s → 0.5s → 2s → 8s → 15s → 30s — until you guess it or give up.
 
+Inspired by [Songspot.net](https://songspot.net/).
+
 ## How it works
 
 - **Song source**: [Deezer](https://www.deezer.com)'s public API, no auth required. Tracks come from hand-picked, spot-checked OPM playlists grouped by decade (2000s / 2010s / 2020s), since Deezer has no official "OPM by decade" catalog.

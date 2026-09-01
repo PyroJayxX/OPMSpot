@@ -11,20 +11,30 @@ export interface AudioPlayerHandle {
 interface AudioPlayerProps {
   src: string | null;
   volume: number;
+  onProgress?: (seconds: number) => void;
 }
 
 export const AudioPlayer = forwardRef<AudioPlayerHandle, AudioPlayerProps>(
-  function AudioPlayer({ src, volume }, ref) {
+  function AudioPlayer({ src, volume, onProgress }, ref) {
     const audioRef = useRef<HTMLAudioElement | null>(null);
-    const listenerRef = useRef<(() => void) | null>(null);
+    const capListenerRef = useRef<(() => void) | null>(null);
 
     useEffect(() => {
       if (audioRef.current) audioRef.current.volume = volume;
     }, [volume]);
 
+    useEffect(() => {
+      const audio = audioRef.current;
+      if (!audio || !onProgress) return;
+
+      const handleProgress = () => onProgress(audio.currentTime);
+      audio.addEventListener("timeupdate", handleProgress);
+      return () => audio.removeEventListener("timeupdate", handleProgress);
+    }, [onProgress]);
+
     const capAt = (audio: HTMLAudioElement, seconds: number) => {
-      if (listenerRef.current) {
-        audio.removeEventListener("timeupdate", listenerRef.current);
+      if (capListenerRef.current) {
+        audio.removeEventListener("timeupdate", capListenerRef.current);
       }
 
       const onTimeUpdate = () => {
@@ -34,7 +44,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, AudioPlayerProps>(
         }
       };
 
-      listenerRef.current = onTimeUpdate;
+      capListenerRef.current = onTimeUpdate;
       audio.addEventListener("timeupdate", onTimeUpdate);
     };
 
@@ -44,6 +54,7 @@ export const AudioPlayer = forwardRef<AudioPlayerHandle, AudioPlayerProps>(
         if (!audio) return;
 
         audio.currentTime = 0;
+        onProgress?.(0);
         capAt(audio, seconds);
         void audio.play();
       },

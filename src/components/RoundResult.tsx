@@ -32,7 +32,11 @@ export function RoundResult({
           (status === "correct" ? "text-success" : "text-danger")
         }
       >
-        {status === "correct" ? `Guessed in ${guessedAtLabel}!` : "Out of clips"}
+        {status === "correct"
+          ? `Guessed in ${guessedAtLabel}!`
+          : status === "incorrect"
+          ? "Incorrect!"
+          : "Gave up!"}
       </p>
 
       {track.albumArtUrl && (

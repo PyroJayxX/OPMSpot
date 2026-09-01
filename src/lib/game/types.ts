@@ -12,7 +12,9 @@ export interface SongPoolTrack {
   difficulty: DifficultyTier;
 }
 
-export type GameStatus = "playing" | "correct" | "revealed";
+export type GameStatus = "playing" | "correct" | "incorrect" | "revealed";
+
+export type GuessResult = "wrong" | "artist-match";
 
 export interface GameState {
   pool: SongPoolTrack[];
@@ -22,4 +24,5 @@ export interface GameState {
   stageIndex: number;
   status: GameStatus;
   lastGuess: string | null;
+  lastGuessResult: GuessResult | null;
 }

@@ -11,7 +11,8 @@ type Action =
   | { type: "NEXT_STAGE" }
   | { type: "SUBMIT_GUESS"; guess: string }
   | { type: "GIVE_UP" }
-  | { type: "NEXT_ROUND" };
+  | { type: "NEXT_ROUND" }
+  | { type: "CLEAR_TRACK" };
 
 const initialState: GameState = {
   pool: [],
@@ -21,6 +22,7 @@ const initialState: GameState = {
   stageIndex: 0,
   status: "playing",
   lastGuess: null,
+  lastGuessResult: null,
 };
 
 function pickTrack(
@@ -59,6 +61,7 @@ function startRound(state: GameState): GameState {
     stageIndex: 0,
     status: "playing",
     lastGuess: null,
+    lastGuessResult: null,
   };
 }
 
@@ -78,18 +81,35 @@ function reducer(state: GameState, action: Action): GameState {
     case "NEXT_STAGE": {
       if (state.status !== "playing") return state;
       const nextIndex = Math.min(state.stageIndex + 1, REVEAL_STAGES.length - 1);
-      return { ...state, stageIndex: nextIndex };
+      return { ...state, stageIndex: nextIndex, lastGuess: null, lastGuessResult: null };
     }
 
     case "SUBMIT_GUESS": {
       if (state.status !== "playing" || !state.currentTrack) return state;
 
       const isCorrect = matchGuess(action.guess, state.currentTrack.name);
-      if (!isCorrect) {
-        return { ...state, lastGuess: action.guess };
+      if (isCorrect) {
+        return { ...state, status: "correct", lastGuess: action.guess, lastGuessResult: null };
       }
 
-      return { ...state, status: "correct", lastGuess: action.guess };
+      const isArtistMatch = matchGuess(action.guess, state.currentTrack.artist);
+      if (isArtistMatch) {
+        const bonusIndex = Math.min(state.stageIndex + 1, REVEAL_STAGES.length - 2);
+        return {
+          ...state,
+          stageIndex: bonusIndex,
+          lastGuess: action.guess,
+          lastGuessResult: "artist-match",
+        };
+      }
+
+      return {
+        ...state,
+        status: "incorrect",
+        stageIndex: REVEAL_STAGES.length - 1,
+        lastGuess: action.guess,
+        lastGuessResult: "wrong",
+      };
     }
 
     case "GIVE_UP": {
@@ -100,6 +120,17 @@ function reducer(state: GameState, action: Action): GameState {
         stageIndex: REVEAL_STAGES.length - 1,
       };
     }
+
+    case "CLEAR_TRACK":
+      return {
+        ...state,
+        pool: [],
+        currentTrack: null,
+        stageIndex: 0,
+        status: "playing",
+        lastGuess: null,
+        lastGuessResult: null,
+      };
 
     case "NEXT_ROUND": {
       if (!state.currentTrack) return state;
@@ -130,6 +161,7 @@ export function useGame() {
   );
   const giveUp = useCallback(() => dispatch({ type: "GIVE_UP" }), []);
   const nextRound = useCallback(() => dispatch({ type: "NEXT_ROUND" }), []);
+  const clearTrack = useCallback(() => dispatch({ type: "CLEAR_TRACK" }), []);
 
   const currentDifficulty = getDifficultyForRound(state.roundNumber);
 
@@ -141,5 +173,6 @@ export function useGame() {
     submitGuess,
     giveUp,
     nextRound,
+    clearTrack,
   };
 }

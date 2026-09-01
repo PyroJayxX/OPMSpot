@@ -5,9 +5,9 @@ import { useGame } from "@/hooks/useGame";
 import { AudioPlayer, AudioPlayerHandle } from "@/components/AudioPlayer";
 import { DecadeTabs } from "@/components/DecadeTabs";
 import { DifficultyPills } from "@/components/DifficultyPills";
+import { PlaybackProgress } from "@/components/PlaybackProgress";
 import { PlaybackSidebar } from "@/components/PlaybackSidebar";
 import { PlayButton } from "@/components/PlayButton";
-import { RevealBar } from "@/components/RevealBar";
 import { RevealControls } from "@/components/RevealControls";
 import { GuessForm } from "@/components/GuessForm";
 import { RoundResult } from "@/components/RoundResult";
@@ -28,6 +28,7 @@ export default function Home() {
     submitGuess,
     giveUp,
     nextRound,
+    clearTrack,
   } = useGame();
 
   const [decade, setDecade] = useState<Decade>("any");
@@ -39,6 +40,7 @@ export default function Home() {
     const parsed = stored !== null ? Number(stored) : NaN;
     return Number.isNaN(parsed) ? 0.5 : parsed;
   });
+  const [progress, setProgress] = useState(0);
   const audioRef = useRef<AudioPlayerHandle | null>(null);
 
   useEffect(() => {
@@ -59,6 +61,8 @@ export default function Home() {
     async function loadPool() {
       setLoading(true);
       setError(null);
+      audioRef.current?.stop();
+      clearTrack();
       try {
         const res = await fetch(`/api/song-pool?decade=${decade}`);
         if (!res.ok) {
@@ -80,7 +84,7 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, [decade, setPool]);
+  }, [decade, setPool, clearTrack]);
 
   useEffect(() => {
     if (state.status === "playing" && state.currentTrack) {
@@ -107,19 +111,24 @@ export default function Home() {
   };
 
   return (
-    <main className="max-w-7xl mx-auto w-full px-10 py-14 flex flex-col gap-10 flex-1">
+    <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-10 pt-12 sm:pt-20 lg:pt-32 pb-8 sm:pb-14 flex flex-col gap-6 sm:gap-10 flex-1">
       <div className="text-center">
-        <h1 className="text-5xl font-bold tracking-tight">
+        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
           <span className="text-accent">OPM</span>Spot
         </h1>
-        <p className="text-base text-muted mt-2">Guess the OPM song from a short clip.</p>
+        <p className="text-sm sm:text-base text-muted mt-2">Guess the OPM song from a short clip.</p>
       </div>
 
       {state.currentTrack && (
-        <AudioPlayer ref={audioRef} src={state.currentTrack.previewUrl} volume={volume} />
+        <AudioPlayer
+          ref={audioRef}
+          src={state.currentTrack.previewUrl}
+          volume={volume}
+          onProgress={setProgress}
+        />
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_260px] gap-16 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-[220px_minmax(0,1fr)_260px] gap-6 lg:gap-16 items-start">
         <aside className="hidden lg:flex flex-col gap-4">
           <span className="text-xs font-semibold uppercase tracking-wide text-muted">
             Difficulty
@@ -147,7 +156,7 @@ export default function Home() {
             <div className="flex flex-col gap-6">
               {isPlaying && (
                 <>
-                  <RevealBar stageIndex={state.stageIndex} />
+                  <PlaybackProgress progress={progress} stageIndex={state.stageIndex} />
 
                   <PlayButton
                     label={
@@ -171,15 +180,15 @@ export default function Home() {
                     />
                   </div>
 
-                  {state.lastGuess && (
-                    <p className="text-base text-muted text-center">
-                      Not quite: “{state.lastGuess}”. Try again.
+                  {state.lastGuessResult === "artist-match" && (
+                    <p className="text-base font-semibold text-success text-center">
+                      Right artist! One more chance — next clip unlocked.
                     </p>
                   )}
                 </>
               )}
 
-              {(state.status === "correct" || state.status === "revealed") && (
+              {state.status !== "playing" && (
                 <RoundResult
                   track={state.currentTrack}
                   status={state.status}
@@ -187,6 +196,11 @@ export default function Home() {
                   onNextRound={nextRound}
                 />
               )}
+
+              <div className="lg:hidden flex flex-col gap-6">
+                <StageSidebar stageIndex={state.stageIndex} />
+                <VolumeControl volume={volume} onChange={setVolume} />
+              </div>
             </div>
           )}
         </section>
