@@ -14,8 +14,6 @@ export interface SongPoolTrack {
 
 export type GameStatus = "playing" | "correct" | "incorrect" | "revealed";
 
-export type GuessResult = "wrong" | "artist-match";
-
 export interface GameState {
   pool: SongPoolTrack[];
   usedTrackIds: string[];
@@ -23,6 +21,4 @@ export interface GameState {
   currentTrack: SongPoolTrack | null;
   stageIndex: number;
   status: GameStatus;
-  lastGuess: string | null;
-  lastGuessResult: GuessResult | null;
 }

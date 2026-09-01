@@ -179,12 +179,6 @@ export default function Home() {
                       onGiveUp={giveUp}
                     />
                   </div>
-
-                  {state.lastGuessResult === "artist-match" && (
-                    <p className="text-base font-semibold text-success text-center">
-                      Right artist! One more chance — next clip unlocked.
-                    </p>
-                  )}
                 </>
               )}
 

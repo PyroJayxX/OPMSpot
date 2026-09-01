@@ -21,8 +21,6 @@ const initialState: GameState = {
   currentTrack: null,
   stageIndex: 0,
   status: "playing",
-  lastGuess: null,
-  lastGuessResult: null,
 };
 
 function pickTrack(
@@ -60,8 +58,6 @@ function startRound(state: GameState): GameState {
     currentTrack: track,
     stageIndex: 0,
     status: "playing",
-    lastGuess: null,
-    lastGuessResult: null,
   };
 }
 
@@ -81,7 +77,7 @@ function reducer(state: GameState, action: Action): GameState {
     case "NEXT_STAGE": {
       if (state.status !== "playing") return state;
       const nextIndex = Math.min(state.stageIndex + 1, REVEAL_STAGES.length - 1);
-      return { ...state, stageIndex: nextIndex, lastGuess: null, lastGuessResult: null };
+      return { ...state, stageIndex: nextIndex };
     }
 
     case "SUBMIT_GUESS": {
@@ -89,26 +85,13 @@ function reducer(state: GameState, action: Action): GameState {
 
       const isCorrect = matchGuess(action.guess, state.currentTrack.name);
       if (isCorrect) {
-        return { ...state, status: "correct", lastGuess: action.guess, lastGuessResult: null };
-      }
-
-      const isArtistMatch = matchGuess(action.guess, state.currentTrack.artist);
-      if (isArtistMatch) {
-        const bonusIndex = Math.min(state.stageIndex + 1, REVEAL_STAGES.length - 2);
-        return {
-          ...state,
-          stageIndex: bonusIndex,
-          lastGuess: action.guess,
-          lastGuessResult: "artist-match",
-        };
+        return { ...state, status: "correct" };
       }
 
       return {
         ...state,
         status: "incorrect",
         stageIndex: REVEAL_STAGES.length - 1,
-        lastGuess: action.guess,
-        lastGuessResult: "wrong",
       };
     }
 
@@ -128,8 +111,6 @@ function reducer(state: GameState, action: Action): GameState {
         currentTrack: null,
         stageIndex: 0,
         status: "playing",
-        lastGuess: null,
-        lastGuessResult: null,
       };
 
     case "NEXT_ROUND": {
