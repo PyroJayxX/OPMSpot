@@ -22,6 +22,7 @@ export function GuessBar({
   onGiveUp,
 }: GuessBarProps) {
   const [value, setValue] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const hasGuess = value.trim().length > 0;
   const atLastStage = isLastPlayableStage(stageIndex);
@@ -43,6 +44,12 @@ export function GuessBar({
   const submitGuess = (guess: string) => {
     onSubmitGuess(guess);
     setValue("");
+    setShowSuggestions(false);
+  };
+
+  const selectSuggestion = (name: string) => {
+    setValue(name);
+    setShowSuggestions(false);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -64,7 +71,10 @@ export function GuessBar({
           type="text"
           value={value}
           disabled={disabled}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            setValue(e.target.value);
+            setShowSuggestions(true);
+          }}
           placeholder="Guess the song title..."
           className="flex-1 rounded-lg border border-border bg-surface px-4 py-3 text-base text-foreground placeholder:text-muted focus:outline-none focus:border-accent disabled:opacity-40"
           autoComplete="off"
@@ -78,13 +88,13 @@ export function GuessBar({
         </button>
       </form>
 
-      {suggestions.length > 0 && !disabled && (
+      {showSuggestions && suggestions.length > 0 && !disabled && (
         <ul className="absolute z-10 mt-1 w-full max-h-56 overflow-y-auto bg-surface-raised border border-border rounded-lg shadow-lg text-base">
           {suggestions.map((track) => (
             <li key={track.id}>
               <button
                 type="button"
-                onClick={() => setValue(track.name)}
+                onClick={() => selectSuggestion(track.name)}
                 className="w-full text-left px-4 py-3 hover:bg-surface text-foreground"
               >
                 {track.name} <span className="text-muted">— {track.artist}</span>
