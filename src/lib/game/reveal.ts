@@ -9,3 +9,7 @@ export const REVEAL_STAGES = [
 ] as const;
 
 export type RevealStage = (typeof REVEAL_STAGES)[number];
+
+export function isLastPlayableStage(stageIndex: number): boolean {
+  return stageIndex >= REVEAL_STAGES.length - 2;
+}

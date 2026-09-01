@@ -1,16 +1,32 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { isLastPlayableStage } from "@/lib/game/reveal";
 import { SongPoolTrack } from "@/lib/game/types";
 
-interface GuessFormProps {
+interface GuessBarProps {
   pool: SongPoolTrack[];
+  stageIndex: number;
   disabled: boolean;
-  onSubmit: (guess: string) => void;
+  onSubmitGuess: (guess: string) => void;
+  onSkip: () => void;
+  onGiveUp: () => void;
 }
 
-export function GuessForm({ pool, disabled, onSubmit }: GuessFormProps) {
+export function GuessBar({
+  pool,
+  stageIndex,
+  disabled,
+  onSubmitGuess,
+  onSkip,
+  onGiveUp,
+}: GuessBarProps) {
   const [value, setValue] = useState("");
+
+  const hasGuess = value.trim().length > 0;
+  const atLastStage = isLastPlayableStage(stageIndex);
+
+  const buttonLabel = hasGuess ? "Guess" : atLastStage ? "Give up" : "Skip";
 
   const suggestions = useMemo(() => {
     const query = value.trim().toLowerCase();
@@ -24,21 +40,26 @@ export function GuessForm({ pool, disabled, onSubmit }: GuessFormProps) {
       .slice(0, 5);
   }, [value, pool]);
 
-  const submit = (guess: string) => {
-    if (!guess.trim()) return;
-    onSubmit(guess);
+  const submitGuess = (guess: string) => {
+    onSubmitGuess(guess);
     setValue("");
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = value.trim();
+    if (trimmed) {
+      submitGuess(trimmed);
+    } else if (atLastStage) {
+      onGiveUp();
+    } else {
+      onSkip();
+    }
   };
 
   return (
     <div className="relative">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          submit(value);
-        }}
-        className="flex gap-2"
-      >
+      <form onSubmit={handleSubmit} className="flex gap-2">
         <input
           type="text"
           value={value}
@@ -51,9 +72,9 @@ export function GuessForm({ pool, disabled, onSubmit }: GuessFormProps) {
         <button
           type="submit"
           disabled={disabled}
-          className="px-6 py-3 rounded-lg bg-accent text-accent-foreground text-base font-semibold hover:bg-accent-strong transition-colors disabled:opacity-30"
+          className="px-6 py-3 rounded-lg bg-accent text-accent-foreground text-base font-semibold hover:bg-accent-strong transition-colors disabled:opacity-30 whitespace-nowrap"
         >
-          Guess
+          {buttonLabel}
         </button>
       </form>
 
@@ -63,7 +84,7 @@ export function GuessForm({ pool, disabled, onSubmit }: GuessFormProps) {
             <li key={track.id}>
               <button
                 type="button"
-                onClick={() => submit(track.name)}
+                onClick={() => setValue(track.name)}
                 className="w-full text-left px-4 py-3 hover:bg-surface text-foreground"
               >
                 {track.name} <span className="text-muted">— {track.artist}</span>

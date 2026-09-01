@@ -21,4 +21,5 @@ export interface GameState {
   currentTrack: SongPoolTrack | null;
   stageIndex: number;
   status: GameStatus;
+  lastGuessWasWrong: boolean;
 }

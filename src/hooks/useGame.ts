@@ -1,5 +1,5 @@
 import { useCallback, useReducer } from "react";
-import { REVEAL_STAGES } from "@/lib/game/reveal";
+import { isLastPlayableStage, REVEAL_STAGES } from "@/lib/game/reveal";
 import { getDifficultyForRound } from "@/lib/game/difficultyCycle";
 import { matchGuess } from "@/lib/game/matchGuess";
 import { DIFFICULTY_CYCLE } from "@/lib/game/difficultyCycle";
@@ -21,6 +21,7 @@ const initialState: GameState = {
   currentTrack: null,
   stageIndex: 0,
   status: "playing",
+  lastGuessWasWrong: false,
 };
 
 function pickTrack(
@@ -58,6 +59,7 @@ function startRound(state: GameState): GameState {
     currentTrack: track,
     stageIndex: 0,
     status: "playing",
+    lastGuessWasWrong: false,
   };
 }
 
@@ -77,7 +79,7 @@ function reducer(state: GameState, action: Action): GameState {
     case "NEXT_STAGE": {
       if (state.status !== "playing") return state;
       const nextIndex = Math.min(state.stageIndex + 1, REVEAL_STAGES.length - 1);
-      return { ...state, stageIndex: nextIndex };
+      return { ...state, stageIndex: nextIndex, lastGuessWasWrong: false };
     }
 
     case "SUBMIT_GUESS": {
@@ -85,14 +87,20 @@ function reducer(state: GameState, action: Action): GameState {
 
       const isCorrect = matchGuess(action.guess, state.currentTrack.name);
       if (isCorrect) {
-        return { ...state, status: "correct" };
+        return { ...state, status: "correct", lastGuessWasWrong: false };
       }
 
-      return {
-        ...state,
-        status: "incorrect",
-        stageIndex: REVEAL_STAGES.length - 1,
-      };
+      if (isLastPlayableStage(state.stageIndex)) {
+        return {
+          ...state,
+          status: "incorrect",
+          stageIndex: REVEAL_STAGES.length - 1,
+          lastGuessWasWrong: true,
+        };
+      }
+
+      const nextIndex = Math.min(state.stageIndex + 1, REVEAL_STAGES.length - 1);
+      return { ...state, stageIndex: nextIndex, lastGuessWasWrong: true };
     }
 
     case "GIVE_UP": {
@@ -101,6 +109,7 @@ function reducer(state: GameState, action: Action): GameState {
         ...state,
         status: "revealed",
         stageIndex: REVEAL_STAGES.length - 1,
+        lastGuessWasWrong: false,
       };
     }
 
@@ -111,6 +120,7 @@ function reducer(state: GameState, action: Action): GameState {
         currentTrack: null,
         stageIndex: 0,
         status: "playing",
+        lastGuessWasWrong: false,
       };
 
     case "NEXT_ROUND": {

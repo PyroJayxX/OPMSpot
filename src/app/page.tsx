@@ -8,8 +8,7 @@ import { DifficultyPills } from "@/components/DifficultyPills";
 import { PlaybackProgress } from "@/components/PlaybackProgress";
 import { PlaybackSidebar } from "@/components/PlaybackSidebar";
 import { PlayButton } from "@/components/PlayButton";
-import { RevealControls } from "@/components/RevealControls";
-import { GuessForm } from "@/components/GuessForm";
+import { GuessBar } from "@/components/GuessBar";
 import { RoundResult } from "@/components/RoundResult";
 import { StageSidebar } from "@/components/StageSidebar";
 import { VolumeControl } from "@/components/VolumeControl";
@@ -111,7 +110,7 @@ export default function Home() {
   };
 
   return (
-    <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-10 pt-12 sm:pt-20 lg:pt-32 pb-8 sm:pb-14 flex flex-col gap-6 sm:gap-10 flex-1">
+    <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-10 pt-12 sm:pt-20 lg:pt-32 pb-8 sm:pb-14 flex flex-col gap-6 sm:gap-10 flex-1 min-h-0 overflow-y-auto">
       <div className="text-center">
         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
           <span className="text-accent">OPM</span>Spot
@@ -166,19 +165,20 @@ export default function Home() {
                     disabled={currentStageSeconds === null}
                   />
 
-                  <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-                    <GuessForm
-                      pool={state.pool}
-                      disabled={!isPlaying}
-                      onSubmit={submitGuess}
-                    />
-                    <RevealControls
-                      stageIndex={state.stageIndex}
-                      disabled={!isPlaying}
-                      onNextStage={nextStage}
-                      onGiveUp={giveUp}
-                    />
-                  </div>
+                  <GuessBar
+                    pool={state.pool}
+                    stageIndex={state.stageIndex}
+                    disabled={!isPlaying}
+                    onSubmitGuess={submitGuess}
+                    onSkip={nextStage}
+                    onGiveUp={giveUp}
+                  />
+
+                  {state.lastGuessWasWrong && (
+                    <p className="text-sm font-semibold text-danger text-center">
+                      Incorrect!
+                    </p>
+                  )}
                 </>
               )}
 
