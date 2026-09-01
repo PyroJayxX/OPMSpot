@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OPMSpot
 
-## Getting Started
+Guess the OPM (Original Pilipino Music) song from a short audio clip. Each round plays a growing snippet — 0.1s → 0.5s → 2s → 8s → 15s → 30s — until you guess it or give up.
 
-First, run the development server:
+## How it works
+
+- **Song source**: [Deezer](https://www.deezer.com)'s public API, no auth required. Tracks come from hand-picked, spot-checked OPM playlists grouped by decade (2000s / 2010s / 2020s), since Deezer has no official "OPM by decade" catalog.
+- **Difficulty**: each round auto-cycles through Easy → Medium → Hard → Expert → Impossible → back to Easy (4 Pics 1 Word style — not player-selectable). Tiers are computed by bucketing the current pool into quintiles of Deezer's `rank` field.
+- **Playback**: Deezer's 30-second preview MP3s via a plain `<audio>` element. Skip continues playback from wherever it stopped; the replay button restarts from 0.
+- **UI theme**: the accent color across the whole page shifts to match the current round's difficulty tier.
+
+## Getting started
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+No environment variables or API keys are needed — Deezer's search/playlist endpoints are public.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project structure
 
-## Learn More
+```
+src/
+  app/
+    page.tsx                  # main game screen
+    api/song-pool/route.ts    # GET pool by decade
+  components/                 # UI components
+  hooks/useGame.ts            # game state (useReducer)
+  lib/
+    deezer/                   # Deezer API client + types
+    game/                     # reveal stages, difficulty tiers, guess matching, pool selection
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Known limitations
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Decade pools are sourced from community-curated Deezer playlists (Deezer has no official OPM-by-decade catalog), spot-checked for genuine OPM content but not guaranteed perfectly clean.
+- Not every track has a preview available; those are filtered out silently when building each pool.
