@@ -79,7 +79,7 @@ export function GuessBar({
       </form>
 
       {suggestions.length > 0 && !disabled && (
-        <ul className="absolute z-10 mt-1 w-full bg-surface-raised border border-border rounded-lg shadow-lg text-base overflow-hidden">
+        <ul className="absolute z-10 mt-1 w-full max-h-56 overflow-y-auto bg-surface-raised border border-border rounded-lg shadow-lg text-base">
           {suggestions.map((track) => (
             <li key={track.id}>
               <button

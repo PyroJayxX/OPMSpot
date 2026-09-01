@@ -11,6 +11,7 @@ import { PlayButton } from "@/components/PlayButton";
 import { GuessBar } from "@/components/GuessBar";
 import { RoundResult } from "@/components/RoundResult";
 import { StageSidebar } from "@/components/StageSidebar";
+import { StreakCounter } from "@/components/StreakCounter";
 import { VolumeControl } from "@/components/VolumeControl";
 import { REVEAL_STAGES } from "@/lib/game/reveal";
 import { TIER_COLORS } from "@/lib/game/tierColors";
@@ -110,7 +111,7 @@ export default function Home() {
   };
 
   return (
-    <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-10 pt-12 sm:pt-20 lg:pt-32 pb-8 sm:pb-14 flex flex-col gap-6 sm:gap-10 flex-1 min-h-0 overflow-y-auto">
+    <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-10 pt-12 sm:pt-20 xl:pt-32 pb-8 sm:pb-14 flex flex-col gap-6 sm:gap-10 flex-1 min-h-0 overflow-y-auto">
       <div className="text-center">
         <h1 className="text-4xl sm:text-5xl font-bold tracking-tight">
           <span className="text-accent">OPM</span>Spot
@@ -136,7 +137,13 @@ export default function Home() {
         </aside>
 
         <section className="flex flex-col gap-8 max-w-md mx-auto w-full">
-          <DecadeTabs decade={decade} onChange={setDecade} disabled={loading} />
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+            <div />
+            <DecadeTabs decade={decade} onChange={setDecade} disabled={loading} />
+            <div className="flex justify-end">
+              <StreakCounter streak={state.streak} />
+            </div>
+          </div>
 
           <div className="flex justify-center">
             <DifficultyPills current={currentDifficulty} orientation="row" />

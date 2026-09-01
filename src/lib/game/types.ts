@@ -22,4 +22,5 @@ export interface GameState {
   stageIndex: number;
   status: GameStatus;
   lastGuessWasWrong: boolean;
+  streak: number;
 }

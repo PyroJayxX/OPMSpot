@@ -22,6 +22,7 @@ const initialState: GameState = {
   stageIndex: 0,
   status: "playing",
   lastGuessWasWrong: false,
+  streak: 0,
 };
 
 function pickTrack(
@@ -71,6 +72,7 @@ function reducer(state: GameState, action: Action): GameState {
         pool: action.pool,
         usedTrackIds: [],
         roundNumber: 1,
+        streak: 0,
       });
 
     case "START_ROUND":
@@ -87,7 +89,12 @@ function reducer(state: GameState, action: Action): GameState {
 
       const isCorrect = matchGuess(action.guess, state.currentTrack.name);
       if (isCorrect) {
-        return { ...state, status: "correct", lastGuessWasWrong: false };
+        return {
+          ...state,
+          status: "correct",
+          lastGuessWasWrong: false,
+          streak: state.streak + 1,
+        };
       }
 
       if (isLastPlayableStage(state.stageIndex)) {
@@ -96,6 +103,7 @@ function reducer(state: GameState, action: Action): GameState {
           status: "incorrect",
           stageIndex: REVEAL_STAGES.length - 1,
           lastGuessWasWrong: true,
+          streak: 0,
         };
       }
 
@@ -110,6 +118,7 @@ function reducer(state: GameState, action: Action): GameState {
         status: "revealed",
         stageIndex: REVEAL_STAGES.length - 1,
         lastGuessWasWrong: false,
+        streak: 0,
       };
     }
 
