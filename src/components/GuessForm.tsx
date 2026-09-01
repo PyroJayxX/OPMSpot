@@ -16,7 +16,11 @@ export function GuessForm({ pool, disabled, onSubmit }: GuessFormProps) {
     const query = value.trim().toLowerCase();
     if (query.length < 2) return [];
     return pool
-      .filter((t) => t.name.toLowerCase().includes(query))
+      .filter(
+        (t) =>
+          t.name.toLowerCase().includes(query) ||
+          t.artist.toLowerCase().includes(query)
+      )
       .slice(0, 5);
   }, [value, pool]);
 
