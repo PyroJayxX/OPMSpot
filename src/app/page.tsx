@@ -13,7 +13,7 @@ import { RoundResult } from "@/components/RoundResult";
 import { StageSidebar } from "@/components/StageSidebar";
 import { StreakCounter } from "@/components/StreakCounter";
 import { VolumeControl } from "@/components/VolumeControl";
-import { REVEAL_STAGES } from "@/lib/game/reveal";
+import { MAX_PREVIEW_SECONDS, REVEAL_STAGES } from "@/lib/game/reveal";
 import { TIER_COLORS } from "@/lib/game/tierColors";
 import { Decade } from "@/lib/game/types";
 
@@ -87,7 +87,12 @@ export default function Home() {
   }, [decade, setPool, clearTrack]);
 
   useEffect(() => {
-    if (state.status === "playing" && state.currentTrack) {
+    if (!state.currentTrack) {
+      audioRef.current?.stop();
+      return;
+    }
+
+    if (state.status === "playing") {
       const seconds = REVEAL_STAGES[state.stageIndex].seconds;
       if (seconds !== null) {
         if (state.stageIndex === 0) {
@@ -97,7 +102,7 @@ export default function Home() {
         }
       }
     } else {
-      audioRef.current?.stop();
+      audioRef.current?.playFromStart(MAX_PREVIEW_SECONDS);
     }
   }, [state.stageIndex, state.status, state.currentTrack]);
 

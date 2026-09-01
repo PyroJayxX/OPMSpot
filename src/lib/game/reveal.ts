@@ -13,3 +13,6 @@ export type RevealStage = (typeof REVEAL_STAGES)[number];
 export function isLastPlayableStage(stageIndex: number): boolean {
   return stageIndex >= REVEAL_STAGES.length - 2;
 }
+
+export const MAX_PREVIEW_SECONDS = REVEAL_STAGES[REVEAL_STAGES.length - 2]
+  .seconds as number;
