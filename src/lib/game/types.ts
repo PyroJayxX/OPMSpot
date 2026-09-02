@@ -1,5 +1,7 @@
 export type Decade = "2000s" | "2010s" | "2020s" | "any";
 
+export type Source = "deezer" | "itunes";
+
 export type DifficultyTier = "easy" | "medium" | "hard" | "expert" | "impossible";
 
 export interface SongPoolTrack {

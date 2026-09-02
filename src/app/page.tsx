@@ -10,14 +10,16 @@ import { PlaybackSidebar } from "@/components/PlaybackSidebar";
 import { PlayButton } from "@/components/PlayButton";
 import { GuessBar } from "@/components/GuessBar";
 import { RoundResult } from "@/components/RoundResult";
+import { SourceTabs } from "@/components/SourceTabs";
 import { StageSidebar } from "@/components/StageSidebar";
 import { StreakCounter } from "@/components/StreakCounter";
 import { VolumeControl } from "@/components/VolumeControl";
 import { MAX_PREVIEW_SECONDS, REVEAL_STAGES } from "@/lib/game/reveal";
 import { TIER_COLORS } from "@/lib/game/tierColors";
-import { Decade } from "@/lib/game/types";
+import { Decade, Source } from "@/lib/game/types";
 
 const VOLUME_STORAGE_KEY = "opmspot-volume";
+const SOURCE_STORAGE_KEY = "opmspot-source";
 
 export default function Home() {
   const {
@@ -32,6 +34,11 @@ export default function Home() {
   } = useGame();
 
   const [decade, setDecade] = useState<Decade>("any");
+  const [source, setSource] = useState<Source>(() => {
+    if (typeof window === "undefined") return "deezer";
+    const stored = window.localStorage.getItem(SOURCE_STORAGE_KEY);
+    return stored === "itunes" ? "itunes" : "deezer";
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [volume, setVolume] = useState(() => {
@@ -46,6 +53,10 @@ export default function Home() {
   useEffect(() => {
     window.localStorage.setItem(VOLUME_STORAGE_KEY, String(volume));
   }, [volume]);
+
+  useEffect(() => {
+    window.localStorage.setItem(SOURCE_STORAGE_KEY, source);
+  }, [source]);
 
   useEffect(() => {
     const color = TIER_COLORS[currentDifficulty];
@@ -64,7 +75,7 @@ export default function Home() {
       audioRef.current?.stop();
       clearTrack();
       try {
-        const res = await fetch(`/api/song-pool?decade=${decade}`);
+        const res = await fetch(`/api/song-pool?decade=${decade}&source=${source}`);
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
           throw new Error(body.error ?? `Request failed (${res.status})`);
@@ -84,7 +95,7 @@ export default function Home() {
     return () => {
       cancelled = true;
     };
-  }, [decade, setPool, clearTrack]);
+  }, [decade, source, setPool, clearTrack]);
 
   useEffect(() => {
     if (!state.currentTrack) {
@@ -142,6 +153,10 @@ export default function Home() {
         </aside>
 
         <section className="flex flex-col gap-8 max-w-md mx-auto w-full">
+          <div className="flex justify-center">
+            <SourceTabs source={source} onChange={setSource} disabled={loading} />
+          </div>
+
           <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
             <div />
             <DecadeTabs decade={decade} onChange={setDecade} disabled={loading} />

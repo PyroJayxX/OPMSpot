@@ -21,6 +21,14 @@ const DECADE_PLAYLIST_IDS: Record<Exclude<Decade, "any">, number[]> = {
   ],
 };
 
+/**
+ * "Certified OPM Hits" is a various-artists compilation whose cover art
+ * (a scanned-looking mixtape label) shows up instead of each song's real
+ * artwork and doesn't represent the track being guessed. Excluded by
+ * album id rather than dropping the whole playlist it was pulled from.
+ */
+const EXCLUDED_ALBUM_IDS = new Set([6106073]);
+
 function normalizeKey(track: DeezerTrack): string {
   return `${track.title.toLowerCase().trim()}::${track.artist.name
     .toLowerCase()
@@ -67,6 +75,7 @@ export async function fetchSongPool(decade: Decade): Promise<SongPoolTrack[]> {
     if (!result) continue;
     for (const track of result.data) {
       if (!track.preview) continue;
+      if (EXCLUDED_ALBUM_IDS.has(track.album.id)) continue;
       if (byId.has(track.id)) continue;
 
       const key = normalizeKey(track);
