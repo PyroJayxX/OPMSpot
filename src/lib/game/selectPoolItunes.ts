@@ -10,9 +10,13 @@ import { Decade, SongPoolTrack } from "./types";
  * hand-picked list of genuine OPM artists spanning legacy OPM, 2000s-2020s
  * bands/pop, and the Fliptop-era rap scene (mirrors the spirit of Deezer's
  * hand-picked playlists), then filters each artist's catalog to the
- * requested decade via releaseDate. Ordered roughly mainstream-to-niche;
- * that order also seeds the difficulty ranking below since iTunes gives no
- * popularity score.
+ * requested decade via releaseDate. iTunes gives no popularity score, but
+ * for an artist-only query its own result order reliably puts the most
+ * recognizable songs first (e.g. searching "Eraserheads" returns "Ang
+ * Huling El Bimbo", "With a Smile", "Alapaap"...) — so difficulty ranking
+ * below is keyed primarily on that per-artist position, with this list's
+ * mainstream-to-niche order only breaking ties between artists. List order
+ * doesn't otherwise matter.
  */
 const OPM_ARTISTS = [
   "Eraserheads", "Rivermaya", "Parokya ni Edgar", "Sarah Geronimo", "Regine Velasquez",
@@ -144,7 +148,7 @@ async function fetchArtistCatalog(): Promise<RankedTrack[]> {
 
       const queryArtist = chunk[i];
       const artistIndex = start + i;
-      const artistBaseRank = (OPM_ARTISTS.length - artistIndex) * 1000;
+      const artistTiebreak = OPM_ARTISTS.length - artistIndex;
 
       result.results.forEach((track, trackIndex) => {
         if (!track.previewUrl) return;
@@ -154,7 +158,12 @@ async function fetchArtistCatalog(): Promise<RankedTrack[]> {
         const key = normalizeKey(track);
         if (seenKeys.has(key)) return;
 
-        byId.set(track.trackId, { track, rank: artistBaseRank - trackIndex });
+        // trackIndex dominates (an artist's 2nd-most-recognizable song is
+        // always harder than their 1st, regardless of whose catalog it's
+        // from); artistTiebreak only separates songs sharing the same
+        // trackIndex across different artists.
+        const rank = -trackIndex * 1000 + artistTiebreak;
+        byId.set(track.trackId, { track, rank });
         seenKeys.add(key);
       });
     });

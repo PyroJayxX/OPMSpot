@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "*.dzcdn.net",
       },
+      {
+        protocol: "https",
+        hostname: "*.mzstatic.com",
+      },
     ],
   },
 };
