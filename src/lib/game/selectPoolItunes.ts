@@ -3,46 +3,26 @@ import { ItunesTrack } from "../itunes/types";
 import { assignDifficultyTiers } from "./difficulty";
 import { Decade, SongPoolTrack } from "./types";
 
-/**
- * The free iTunes Search API has no genre filter and no "OPM" tag, and
- * generic queries ("OPM hits") pull in whatever international pop happens
- * to match. So instead of searching by keyword, this searches by a
- * hand-picked list of genuine OPM artists spanning legacy OPM, 2000s-2020s
- * bands/pop, and the Fliptop-era rap scene (mirrors the spirit of Deezer's
- * hand-picked playlists), then filters each artist's catalog to the
- * requested decade via releaseDate. iTunes gives no popularity score, but
- * for an artist-only query its own result order reliably puts the most
- * recognizable songs first (e.g. searching "Eraserheads" returns "Ang
- * Huling El Bimbo", "With a Smile", "Alapaap"...) — so difficulty ranking
- * below is keyed primarily on that per-artist position, with this list's
- * mainstream-to-niche order only breaking ties between artists. List order
- * doesn't otherwise matter.
- */
+
 const OPM_ARTISTS = [
-  "Eraserheads", "Rivermaya", "Parokya ni Edgar", "Sarah Geronimo", "Regine Velasquez",
-  "Gary Valenciano", "Martin Nievera", "Bamboo", "Freddie Aguilar", "APO Hiking Society",
-  "Francis Magalona", "SB19", "BINI",
+  // Alternative / Indie Pop / Modern Rock
+"Ben&Ben", "Lola Amour", "Dilaw", "Cup of Joe", "SunKissed Lola", "IV of Spades", "Unique Salonga", "December Avenue", "The Juans", "Silent Sanctuary", "I Belong to the Zoo", "Munimuni", "Autotelic", "Sud", "Nobita", "fitterkarma",
 
-  "Sponge Cola", "Callalily", "Hale", "Kamikazee", "Yeng Constantino", "Rico Blanco",
-  "Silent Sanctuary", "December Avenue", "Juan Karlos", "Ben&Ben", "Moira Dela Torre",
-  "Up Dharma Down", "Itchyworms", "Mayonnaise", "Christian Bautista", "Erik Santos",
-  "Ogie Alcasid",
+// P-Pop / Modern Pop
+"BINI", "SB19", "Sarah Geronimo", "Maki", "Zack Tabudlo", "Adie", "Arthur Nery", "Dionela", "TJ Monterde", "Moira Dela Torre", "Yeng Constantino", "Janine Berdin",
 
-  "Zack Tabudlo", "IV of Spades", "Cup of Joe", "Arthur Nery", "Dionela", "Adie",
-  "Lola Amour", "Dilaw", "TJ Monterde", "The Juans", "I Belong to the Zoo", "Franco",
-  "SunKissed Lola", "Maki",
+// Hip-Hop / Rap / Trap / Kalye
+"Hev Abi", "Flow G", "Skusta Clee", "Al James", "O Side Mafia", "Yuridope", "Hellmerry", "Omar Baliw", "Ex Battalion", "Because", "Pricetagg", "Bugoy na Koykoy", "Nateman", "Lo ki", "Gat Putch", "Gloc-9", "Shanti Dope", "Abra", "Loonie", "Smugglaz", "Shehyee",
 
-  "Gloc-9", "Shanti Dope", "Abra", "Loonie", "Smugglaz", "Shehyee", "Hev Abi", "Flow G",
-  "Skusta Clee", "Al James", "O Side Mafia", "Yuridope", "Hellmerry", "Omar Baliw",
-  "Ex Battalion", "Because", "Pricetagg", "Bugoy na Koykoy", "Nateman", "Lo ki",
-  "Gat Putch", "gins&melodies", "Unotheone", "Kristina Dawn", "Simmo", "Tu Brother",
-  "OLG Zak",
+// Classic OPM Rock / Nineties Band Legends
+"Eraserheads", "Rivermaya", "Parokya ni Edgar", "Kamikazee", "Bamboo", "Rico Blanco", "Ebe Dancel", "Sponge Cola", "Callalily", "Hale", "Up Dharma Down", "Itchyworms", "Mayonnaise", "Cueshe", "Sugarfree", "Chicosci", "Urbandub", "Orange & Lemons", "6cyclemind", "Moonstar88", "Imago",
 
-  "Sugarfree", "Chicosci", "Urbandub", "Orange & Lemons", "Cueshe", "This Band",
-  "Munimuni", "fitterkarma", "Nobita", "Janine Berdin", "Autotelic", "Sud",
-  "Syd Hartha", "Unique Salonga", "Rey Valera", "Rico J. Puno", "Hajji Alejandro",
-  "Basil Valdez", "Noel Cabangon", "Ebe Dancel", "Andrew E.", "Juan de la Cruz Band",
-  "Asin", "Sampaguita", "Joey Ayala",
+// Total Legends / Ballad / Solo Icons
+"Regine Velasquez", "Gary Valenciano", "Martin Nievera", "Ogie Alcasid", "Christian Bautista", "Erik Santos", "Rey Valera", "Side A", "South Border", "Jaya", "Kyla", "Aegis", "Kitchie Nadal",
+
+// Folk & Hip-Hop Pioneers
+"Freddie Aguilar", "APO Hiking Society", "Francis Magalona", "Andrew E."
+
 ];
 
 // iTunes' search API has an undocumented per-IP burst limit — firing all

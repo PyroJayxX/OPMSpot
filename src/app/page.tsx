@@ -33,28 +33,57 @@ export default function Home() {
     clearTrack,
   } = useGame();
 
+  // Deliberately NOT read from localStorage in these initializers: the
+  // server always renders the plain default (no access to the browser's
+  // storage), so seeding client state from localStorage here makes the
+  // client's first render disagree with the server-rendered HTML. React
+  // then has to silently reconcile that hydration mismatch, and which
+  // value "wins" in the painted DOM ends up timing-dependent — that's the
+  // bug where the source tabs sometimes visibly show Deezer selected while
+  // the app is actually still running on the previously-saved iTunes
+  // source underneath. Restoring the saved value in a mount-only effect
+  // below keeps the first paint identical on server and client, so there's
+  // nothing to reconcile.
   const [decade, setDecade] = useState<Decade>("any");
-  const [source, setSource] = useState<Source>(() => {
-    if (typeof window === "undefined") return "deezer";
-    const stored = window.localStorage.getItem(SOURCE_STORAGE_KEY);
-    return stored === "itunes" ? "itunes" : "deezer";
-  });
+  const [source, setSource] = useState<Source>("deezer");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [volume, setVolume] = useState(() => {
-    if (typeof window === "undefined") return 0.5;
-    const stored = window.localStorage.getItem(VOLUME_STORAGE_KEY);
-    const parsed = stored !== null ? Number(stored) : NaN;
-    return Number.isNaN(parsed) ? 0.5 : parsed;
-  });
+  const [volume, setVolume] = useState(0.5);
   const [progress, setProgress] = useState(0);
   const audioRef = useRef<AudioPlayerHandle | null>(null);
+  const skipVolumeWrite = useRef(true);
+  const skipSourceWrite = useRef(true);
+
+  // One-time sync from localStorage (a browser API unavailable during
+  // SSR/the first client render), not derived React state; there's no way
+  // to fold this into render without reintroducing the hydration mismatch
+  // described above, so the two setState calls below are a deliberate,
+  // narrow exception to react-hooks/set-state-in-effect.
+  useEffect(() => {
+    const storedSource = window.localStorage.getItem(SOURCE_STORAGE_KEY);
+    if (storedSource === "itunes") {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSource("itunes");
+    }
+
+    const storedVolume = window.localStorage.getItem(VOLUME_STORAGE_KEY);
+    const parsedVolume = storedVolume !== null ? Number(storedVolume) : NaN;
+    if (!Number.isNaN(parsedVolume)) setVolume(parsedVolume);
+  }, []);
 
   useEffect(() => {
+    if (skipVolumeWrite.current) {
+      skipVolumeWrite.current = false;
+      return;
+    }
     window.localStorage.setItem(VOLUME_STORAGE_KEY, String(volume));
   }, [volume]);
 
   useEffect(() => {
+    if (skipSourceWrite.current) {
+      skipSourceWrite.current = false;
+      return;
+    }
     window.localStorage.setItem(SOURCE_STORAGE_KEY, source);
   }, [source]);
 
@@ -153,7 +182,10 @@ export default function Home() {
         </aside>
 
         <section className="flex flex-col gap-8 max-w-md mx-auto w-full">
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted">
+              Select streaming service
+            </span>
             <SourceTabs source={source} onChange={setSource} disabled={loading} />
           </div>
 
