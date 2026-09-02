@@ -6,7 +6,7 @@ import { Decade, SongPoolTrack } from "./types";
 
 const OPM_ARTISTS = [
   // Alternative / Indie Pop / Modern Rock
-"Ben&Ben", "Lola Amour", "Dilaw", "Cup of Joe", "SunKissed Lola", "IV of Spades", "Unique Salonga", "December Avenue", "The Juans", "Silent Sanctuary", "I Belong to the Zoo", "Munimuni", "Autotelic", "Sud", "Nobita", "fitterkarma",
+"Ben&Ben", "Lola Amour", "Dilaw", "Cup of Joe", "SunKissed Lola", "IV of Spades", "Unique Salonga", "December Avenue", "The Juans", "Silent Sanctuary", "I Belong to the Zoo", "Munimuni", "Sud", "Nobita", "fitterkarma",
 
 // P-Pop / Modern Pop
 "BINI", "SB19", "Sarah Geronimo", "Maki", "Zack Tabudlo", "Adie", "Arthur Nery", "Dionela", "TJ Monterde", "Moira Dela Torre", "Yeng Constantino", "Janine Berdin",
@@ -15,13 +15,13 @@ const OPM_ARTISTS = [
 "Hev Abi", "Flow G", "Skusta Clee", "Al James", "O Side Mafia", "Yuridope", "Hellmerry", "Omar Baliw", "Ex Battalion", "Because", "Pricetagg", "Bugoy na Koykoy", "Nateman", "Lo ki", "Gat Putch", "Gloc-9", "Shanti Dope", "Abra", "Loonie", "Smugglaz", "Shehyee",
 
 // Classic OPM Rock / Nineties Band Legends
-"Eraserheads", "Rivermaya", "Parokya ni Edgar", "Kamikazee", "Bamboo", "Rico Blanco", "Ebe Dancel", "Sponge Cola", "Callalily", "Hale", "Up Dharma Down", "Itchyworms", "Mayonnaise", "Cueshe", "Sugarfree", "Chicosci", "Urbandub", "Orange & Lemons", "6cyclemind", "Moonstar88", "Imago",
+"Eraserheads", "Rivermaya", "Parokya ni Edgar", "Kamikazee", "Bamboo", "Rico Blanco", "Ebe Dancel", "Sponge Cola", "Callalily", "Hale", "Up Dharma Down", "Itchyworms", "Mayonnaise", "Cueshe", "Sugarfree", "Orange & Lemons", "6cyclemind", "Moonstar88", "Imago",
 
 // Total Legends / Ballad / Solo Icons
 "Regine Velasquez", "Gary Valenciano", "Martin Nievera", "Ogie Alcasid", "Christian Bautista", "Erik Santos", "Rey Valera", "Side A", "South Border", "Jaya", "Kyla", "Aegis", "Kitchie Nadal",
 
 // Folk & Hip-Hop Pioneers
-"Freddie Aguilar", "APO Hiking Society", "Francis Magalona", "Andrew E."
+"Freddie Aguilar", "APO Hiking Society", "Francis Magalona"
 
 ];
 
