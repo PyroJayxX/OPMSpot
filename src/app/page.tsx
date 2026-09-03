@@ -213,6 +213,18 @@ export default function Home() {
             <DifficultyPills current={currentDifficulty} orientation="row" />
           </div>
 
+          <button
+            type="button"
+            onClick={reroll}
+            disabled={!state.currentTrack}
+            className="lg:hidden flex items-center justify-center gap-2 mx-auto text-sm font-medium text-accent hover:text-accent-strong transition-colors disabled:opacity-30"
+          >
+            <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
+              <path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.75 6h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4z" />
+            </svg>
+            Reroll
+          </button>
+
           {loading && <p className="text-center text-muted text-sm py-4">Loading songs…</p>}
           {error && <p className="text-center text-danger text-sm py-4">{error}</p>}
 
