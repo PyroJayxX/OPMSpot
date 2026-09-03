@@ -12,7 +12,8 @@ type Action =
   | { type: "SUBMIT_GUESS"; guess: string }
   | { type: "GIVE_UP" }
   | { type: "NEXT_ROUND" }
-  | { type: "CLEAR_TRACK" };
+  | { type: "CLEAR_TRACK" }
+  | { type: "REROLL" };
 
 const initialState: GameState = {
   pool: [],
@@ -163,6 +164,17 @@ function reducer(state: GameState, action: Action): GameState {
         lastGuessWasWrong: false,
       };
 
+    // Keeps the currently loaded pool (no refetch) but otherwise restarts
+    // the game exactly like a fresh SET_POOL: round 1 (easy), no used
+    // tracks, streak cleared.
+    case "REROLL":
+      return startRound({
+        ...state,
+        usedTrackIds: [],
+        roundNumber: 1,
+        streak: 0,
+      });
+
     case "NEXT_ROUND": {
       if (!state.currentTrack) return state;
       const usedTrackIds = [...state.usedTrackIds, state.currentTrack.id];
@@ -193,6 +205,7 @@ export function useGame() {
   const giveUp = useCallback(() => dispatch({ type: "GIVE_UP" }), []);
   const nextRound = useCallback(() => dispatch({ type: "NEXT_ROUND" }), []);
   const clearTrack = useCallback(() => dispatch({ type: "CLEAR_TRACK" }), []);
+  const reroll = useCallback(() => dispatch({ type: "REROLL" }), []);
 
   const currentDifficulty = getDifficultyForRound(state.roundNumber);
 
@@ -205,5 +218,6 @@ export function useGame() {
     giveUp,
     nextRound,
     clearTrack,
+    reroll,
   };
 }
