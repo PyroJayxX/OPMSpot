@@ -17,6 +17,7 @@ type Action =
 const initialState: GameState = {
   pool: [],
   usedTrackIds: [],
+  recentArtists: [],
   roundNumber: 1,
   currentTrack: null,
   stageIndex: 0,
@@ -28,25 +29,24 @@ const initialState: GameState = {
 // How many of the most recent rounds' artists are off-limits for the next
 // pick. Repeating an artist across a game is fine; back-to-back (or
 // near-back-to-back) rounds from the same artist is what reads as broken.
+// Tracked as artist names on GameState (not derived from usedTrackIds+pool)
+// so the cooldown survives a decade/source switch, which resets both of
+// those — otherwise the artist you just heard right before switching could
+// immediately come up again as the new pool's first pick.
 const ARTIST_COOLDOWN_ROUNDS = 2;
 
-function recentArtists(
-  pool: SongPoolTrack[],
-  usedTrackIds: string[],
-  window: number
-): Set<string> {
-  const trackById = new Map(pool.map((t) => [t.id, t]));
-  const artists = new Set<string>();
-  for (const id of usedTrackIds.slice(-window)) {
-    const track = trackById.get(id);
-    if (track) artists.add(track.artist);
-  }
-  return artists;
+function pushRecentArtist(
+  recentArtists: string[],
+  outgoingTrack: SongPoolTrack | null
+): string[] {
+  if (!outgoingTrack) return recentArtists;
+  return [...recentArtists, outgoingTrack.artist].slice(-ARTIST_COOLDOWN_ROUNDS);
 }
 
 function pickTrack(
   pool: SongPoolTrack[],
   usedTrackIds: string[],
+  cooldownArtists: string[],
   difficulty: DifficultyTier
 ): SongPoolTrack | null {
   const unused = pool.filter((t) => !usedTrackIds.includes(t.id));
@@ -54,8 +54,8 @@ function pickTrack(
 
   // Avoid the artist(s) from the last couple of rounds; only allow a
   // repeat once every other option at every difficulty is exhausted.
-  const cooldownArtists = recentArtists(pool, usedTrackIds, ARTIST_COOLDOWN_ROUNDS);
-  const freshArtist = unused.filter((t) => !cooldownArtists.has(t.artist));
+  const cooldownSet = new Set(cooldownArtists);
+  const freshArtist = unused.filter((t) => !cooldownSet.has(t.artist));
   const candidates = freshArtist.length > 0 ? freshArtist : unused;
 
   const byDifficulty = candidates.filter((t) => t.difficulty === difficulty);
@@ -78,11 +78,13 @@ function pickTrack(
 
 function startRound(state: GameState): GameState {
   const difficulty = getDifficultyForRound(state.roundNumber);
-  const track = pickTrack(state.pool, state.usedTrackIds, difficulty);
+  const recentArtists = pushRecentArtist(state.recentArtists, state.currentTrack);
+  const track = pickTrack(state.pool, state.usedTrackIds, recentArtists, difficulty);
 
   return {
     ...state,
     currentTrack: track,
+    recentArtists,
     stageIndex: 0,
     status: "playing",
     lastGuessWasWrong: false,
@@ -152,6 +154,10 @@ function reducer(state: GameState, action: Action): GameState {
         ...state,
         pool: [],
         currentTrack: null,
+        // Bank the artist before nulling currentTrack — this runs right
+        // before a decade/source switch fetches a new pool, and startRound
+        // can no longer see the outgoing track once it's cleared here.
+        recentArtists: pushRecentArtist(state.recentArtists, state.currentTrack),
         stageIndex: 0,
         status: "playing",
         lastGuessWasWrong: false,
