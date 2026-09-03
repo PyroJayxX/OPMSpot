@@ -25,14 +25,8 @@ const OPM_ARTISTS = [
 
 ];
 
-// iTunes' search API has an undocumented per-IP burst limit — firing all
-// artist queries in one Promise.all (~90+) reliably 403s some of them and
-// can trip a longer cooldown. Chunking keeps each burst well under that.
 const FETCH_CHUNK_SIZE = 15;
 
-// Decade filtering is just an in-memory pass over this, so the network
-// fetch (the expensive, rate-limit-sensitive part) is cached once across
-// all decades/requests rather than re-run per decade or per page load.
 const CATALOG_CACHE_TTL_MS = 15 * 60 * 1000;
 let catalogCache: { entries: RankedTrack[]; expiresAt: number } | null = null;
 
@@ -45,18 +39,43 @@ interface RankedTrack {
 // normalization, e.g. "Cueshé" -> "Cueshé" -> "Cueshe".
 const COMBINING_DIACRITICS = /[̀-ͯ]/g;
 
-function normalizeToken(value: string): string {
+// Word-level tokens (spaces preserved as boundaries) so containment checks
+// below can't match mid-word, e.g. query "Abra" no longer matches inside
+// "Gracie Abrams" just because "abra" is a substring of "abrams".
+function normalizeWords(value: string): string[] {
   return value
     .normalize("NFD")
     .replace(COMBINING_DIACRITICS, "")
     .toLowerCase()
-    .replace(/[^a-z0-9]/g, "");
+    .split(/\s+/)
+    .map((word) => word.replace(/[^a-z0-9]/g, ""))
+    .filter(Boolean);
+}
+
+// True if `needle` appears as a contiguous run of whole words inside
+// `haystack` (or vice versa is checked by the caller) — lets "The
+// Itchyworms" match query "Itchyworms" via the extra leading word, without
+// allowing arbitrary mid-word substring matches.
+function containsWordSequence(haystack: string[], needle: string[]): boolean {
+  if (needle.length === 0 || needle.length > haystack.length) return false;
+  for (let i = 0; i <= haystack.length - needle.length; i++) {
+    let matched = true;
+    for (let j = 0; j < needle.length; j++) {
+      if (haystack[i + j] !== needle[j]) {
+        matched = false;
+        break;
+      }
+    }
+    if (matched) return true;
+  }
+  return false;
 }
 
 function isArtistMatch(resultArtist: string, queryArtist: string): boolean {
-  const a = normalizeToken(resultArtist);
-  const b = normalizeToken(queryArtist);
-  return a.length > 0 && b.length > 0 && (a.includes(b) || b.includes(a));
+  const a = normalizeWords(resultArtist);
+  const b = normalizeWords(queryArtist);
+  if (a.length === 0 || b.length === 0) return false;
+  return containsWordSequence(a, b) || containsWordSequence(b, a);
 }
 
 function trackYear(track: ItunesTrack): number | null {
